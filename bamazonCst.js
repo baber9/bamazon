@@ -30,12 +30,12 @@ function bamazonCst () {
   displayWelcomeMsg();
 
   // Show all products
-  connection.query("SELECT item_id, product_name, price FROM products", (err, res) => {
+  connection.query("SELECT * FROM products", (err, res) => {
     if(err){console.log(err);}
     
     // display id, product name, price
     for (var i = 0; i < res.length; i++) {
-      console.log(`ID: ${res[i].item_id}\t- ${res[i].product_name} > $${res[i].price}`);
+      console.log(`ID: ${res[i].item_id}\t${res[i].product_name} > $${res[i].price}`);
     }
     console.log('');
     
@@ -52,17 +52,24 @@ function bamazonCst () {
         type: 'input'
       }
     ]).then((resp) => {
-      // check inventory to make sure order can be fulfilled
-        // if not enough inventory, log 'Insufficient quantity!'
-        // else process by updating database table, show customer total cost
-    });
+        // check if quantity is available (db qty >= request qty)
+        if (res[resp.itemID].stock_quantity >= resp.qty) {
+          // calculate total cost
+          var totalCost = (res[resp.itemID].price * resp.qty).toFixed(2);
+          // call purchaseProduct to decrease qty of item in db
+          purchaseProduct(resp.itemID, resp.qty);
+          // log purchase
+          console.log(`Congrats!  You have purchased ${resp.qty} ${res[resp.itemID].product_name} for a total cost of $${totalCost}.`)
+        } else {
+          // if not enough 'in stock' tell user of insufficient qty
+          console.log(`We do not have enough stock to fill your order. Our current inventory quantity of this item is ${res[resp.itemID].stock_quantity}.  Please choose less of this item.`)
+        }
+        connection.end();
+      });
   });
-
-
-
-  connection.end();
 }
 
+// FUNCTION to display welcome message
 function displayWelcomeMsg () {
   var welcomeMsg = '';
   welcomeMsg += '\n************************************\n';
@@ -70,4 +77,13 @@ function displayWelcomeMsg () {
   welcomeMsg += 'Checkout our amazing products below.\n'
   welcomeMsg += '************************************\n';
   console.log(welcomeMsg);
+}
+
+// FUNCTION to update database when purchase is made
+function purchaseProduct(product, qty) {
+  connection.query("UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?", [qty, product], (err, res) => {
+    if (err) {
+      console.log(err);
+    }
+  });
 }
