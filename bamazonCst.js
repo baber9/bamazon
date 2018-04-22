@@ -4,6 +4,9 @@ var inquirer = require('inquirer');
 // use mysql
 var mysql = require('mysql');
 
+// use easy-table
+var Table = require('easy-table');
+
 // create connection
 var connection = mysql.createConnection({
     host: "localhost",
@@ -13,7 +16,7 @@ var connection = mysql.createConnection({
     user: "root",
   
     // Your password
-    password: "",                         // REMOVE PASSWORD BEFORE GIT
+    password: "root",                         // REMOVE PASSWORD BEFORE GIT
     database: "bamazon"
 });
 
@@ -33,11 +36,17 @@ function bamazonCst () {
   connection.query("SELECT * FROM products", (err, res) => {
     if(err){console.log(err);}
     
-    // display id, product name, price
+    // new instance of Table (for easy-table display)
+    var t = new Table;
+    // display id, product name, price, and stock
     for (var i = 0; i < res.length; i++) {
-      console.log(`ID: ${res[i].item_id}\t${res[i].product_name} > $${res[i].price}`);
+      t.cell('Item ID', res[i].item_id);
+      t.cell('Product', res[i].product_name);
+      t.cell('Price', res[i].price);
+      t.cell('Qty Available', res[i].stock_quantity);
+      t.newRow();
     }
-    console.log('');
+    console.log('\n' + t.toString());
     
     // ask user which item and qty they would like to purchase
     inquirer.prompt([
