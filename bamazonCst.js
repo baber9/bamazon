@@ -17,7 +17,7 @@ var connection = mysql.createConnection({
     user: "root",
   
     // Your password
-    password: "root",                         // REMOVE PASSWORD BEFORE GIT
+    password: "",                         // REMOVE PASSWORD BEFORE GIT
     database: "bamazon"
 });
 

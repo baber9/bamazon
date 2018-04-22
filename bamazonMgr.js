@@ -23,11 +23,11 @@ var connection = mysql.createConnection({
 // connect and call main function
 connection.connect(function(err) {
   if (err) {console.log('Error: ' + err);}
-  bamazonCst();
+  bamazonMgr();
 });
 
-// FUNCTION - main bamazon for customers
-function bamazonCst () {
+// FUNCTION - main bamazon for managers
+function bamazonMgr () {
   
   // call display Welcome Message
   displayWelcomeMsg();
@@ -117,56 +117,57 @@ function addToInventory() {
 }
 
 function addNewProduct() {
-  // prompt user using inquirer
-  inquirer.prompt([
-    {
-      type: 'input',
-      name: 'prodName',
-      message: 'Enter the name of the product:'
-    },
-    {
-      type: 'list',
-      name: 'dept',
-      message: 'Choose from the departments below:',
-      choices: [
-        "Pets",
-        "Computers",
-        "Household",
-        "Electronics",
-        "Personal Care",
-        "Lawn and Garden"
-      ]
-    },
-    {
-      type: 'input',
-      name: 'price',
-      message: 'What is the price of this item?'
-    },
-    {
-      type: 'input',
-      name: 'qty',
-      message: 'What is the initial quantity?'
+  var departments = [];
+  connection.query("SELECT * FROM departments", (err, resp) => {
+    if(err){console.log(err);}
+    for (var i = 0; i < resp.length; i++) {
+      departments.push(resp[i].department_name);
     }
-  ]).then((resp) => {
-    // update product based on resp
-    connection.query("INSERT into products (product_name, department_name, price, stock_quantity) VALUES (?, ?, ?, ?)", [resp.prodName, resp.dept, resp.price, resp.qty],(err, res) => {
-      if(err) {console.log(err);}
-      
-      // new instance of Tabe (easy-table)
-      var t = new Table();
-      // log message with update
-      console.log(`\nThe following product has been added...`);
-      t.cell('Product', resp.prodName);
-      t.cell('Price', resp.price);
-      t.cell('Department', resp.dept);
-      t.cell('Stock', resp.qty);
-      t.newRow();
-      // print table
-      console.log("\n" + t.toString());
+    // prompt user using inquirer
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'prodName',
+        message: 'Enter the name of the product:'
+      },
+      {
+        type: 'list',
+        name: 'dept',
+        message: 'Choose from the departments below:',
+        choices: departments
+      },
+      {
+        type: 'input',
+        name: 'price',
+        message: 'What is the price of this item?'
+      },
+      {
+        type: 'input',
+        name: 'qty',
+        message: 'What is the initial quantity?'
+      }
+    ]).then((resp) => {
+      // update product based on resp
+      connection.query("INSERT into products (product_name, department_name, price, stock_quantity) VALUES (?, ?, ?, ?)", [resp.prodName, resp.dept, resp.price, resp.qty],(err, res) => {
+        if(err) {console.log(err);}
+        
+        // new instance of Tabe (easy-table)
+        var t = new Table();
+        // log message with update
+        console.log(`\nThe following product has been added...`);
+        t.cell('Product', resp.prodName);
+        t.cell('Price', resp.price);
+        t.cell('Department', resp.dept);
+        t.cell('Stock', resp.qty);
+        t.newRow();
+        // print table
+        console.log("\n" + t.toString());
+      });
+      // disconnect
+      connection.end();
     });
-    // disconnect
-    connection.end();
   });
+    
 }
 
 function printResults (dbResults) {
