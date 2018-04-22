@@ -9,6 +9,7 @@ var Table = require('easy-table');
 
 // create connection
 var connection = mysql.createConnection({
+    multipleStatements: true,
     host: "localhost",
     port: 3306,
   
@@ -66,9 +67,9 @@ function bamazonCst () {
           // calculate total cost
           var totalCost = (res[resp.itemID].price * resp.qty).toFixed(2);
           // call purchaseProduct to decrease qty of item in db
-          purchaseProduct(resp.itemID, resp.qty);
+          purchaseProduct(resp.itemID, resp.qty, totalCost);
           // log purchase
-          console.log(`Congrats!  You have purchased ${resp.qty} ${res[resp.itemID].product_name} for a total cost of $${totalCost}.`)
+          console.log(`\nCongrats!  You have purchased ${resp.qty} ${res[resp.itemID].product_name} for a total cost of $${totalCost}.`)
         } else {
           // if not enough 'in stock' tell user of insufficient qty
           console.log(`We do not have enough stock to fill your order. Our current inventory quantity of this item is ${res[resp.itemID].stock_quantity}.  Please choose less of this item.`)
@@ -89,8 +90,8 @@ function displayWelcomeMsg () {
 }
 
 // FUNCTION to update database when purchase is made
-function purchaseProduct(product, qty) {
-  connection.query("UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?", [qty, product], (err, res) => {
+function purchaseProduct(product, qty, totalCost) {
+  connection.query("UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?; UPDATE products SET product_sales = product_sales + ? WHERE item_id = ?", [qty, product, totalCost, product], (err, res) => {
     if (err) {
       console.log(err);
     }
