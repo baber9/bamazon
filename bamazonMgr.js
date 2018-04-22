@@ -117,9 +117,11 @@ function addToInventory() {
 }
 
 function addNewProduct() {
+  // depts arr will be used to show all current depts in db
   var departments = [];
   connection.query("SELECT * FROM departments", (err, resp) => {
     if(err){console.log(err);}
+    // populate array with current depts
     for (var i = 0; i < resp.length; i++) {
       departments.push(resp[i].department_name);
     }
@@ -134,6 +136,7 @@ function addNewProduct() {
         type: 'list',
         name: 'dept',
         message: 'Choose from the departments below:',
+        // use arr of departments
         choices: departments
       },
       {

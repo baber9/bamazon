@@ -20,13 +20,14 @@ var connection = mysql.createConnection({
     database: "bamazon"
   });
 
-  
+  // connect
   connection.connect(function(err) {
     if (err) {console.log('Error: ' + err);}
+    // call main function
     bamazonSup();
   });
 
-  // FUNCTION - main bamazon for managers
+  // FUNCTION - main bamazon for Supervisors
 function bamazonSup () {
   
   // call display Welcome Message

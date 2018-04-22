@@ -17,7 +17,7 @@ var connection = mysql.createConnection({
     user: "root",
   
     // Your password
-    password: "",                         // REMOVE PASSWORD BEFORE GIT
+    password: "root",                         // REMOVE PASSWORD BEFORE GIT
     database: "bamazon"
 });
 
@@ -36,7 +36,7 @@ function bamazonCst () {
   // Show all products
   connection.query("SELECT * FROM products", (err, res) => {
     if(err){console.log(err);}
-    
+    console.log(res);
     // new instance of Table (for easy-table display)
     var t = new Table;
     // display id, product name, price, and stock
@@ -62,17 +62,21 @@ function bamazonCst () {
         type: 'input'
       }
     ]).then((resp) => {
+        // using find() to find the product's item_id based on Cstr's choice
+        // NEEDED, as while item_ids are auto-incremented, when removed the item_id removed will not be replaced.
+        var customerProductChoice = res.find((e) => {
+          return e.item_id === parseInt(resp.itemID);
+        });
+        
         // check if quantity is available (db qty >= request qty)
-        if (res[resp.itemID].stock_quantity >= resp.qty) {
+        if (customerProductChoice.stock_quantity >= resp.qty) {
           // calculate total cost
-          var totalCost = (res[resp.itemID].price * resp.qty).toFixed(2);
+          var totalCost = (customerProductChoice.price * resp.qty).toFixed(2);
           // call purchaseProduct to decrease qty of item in db
-          purchaseProduct(resp.itemID, resp.qty, totalCost);
-          // log purchase
-          console.log(`\nCongrats!  You have purchased ${resp.qty} ${res[resp.itemID].product_name} for a total cost of $${totalCost}.`)
+          purchaseProduct(customerProductChoice, resp.qty, totalCost);
         } else {
           // if not enough 'in stock' tell user of insufficient qty
-          console.log(`We do not have enough stock to fill your order. Our current inventory quantity of this item is ${res[resp.itemID].stock_quantity}.  Please choose less of this item.`)
+          console.log(`We do not have enough stock to fill your order. Our current inventory quantity of this item is ${customerProductChoice.stock_quantity}.  Please choose less of this item.`)
         }
         connection.end();
       });
@@ -91,9 +95,11 @@ function displayWelcomeMsg () {
 
 // FUNCTION to update database when purchase is made
 function purchaseProduct(product, qty, totalCost) {
-  connection.query("UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?; UPDATE products SET product_sales = product_sales + ? WHERE item_id = ?", [qty, product, totalCost, product], (err, res) => {
+  connection.query("UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?; UPDATE products SET product_sales = product_sales + ? WHERE item_id = ?", [qty, product.item_id, totalCost, product.item_id], (err, res) => {
     if (err) {
       console.log(err);
     }
+  // log purchase
+  console.log(`\nCongrats!  You have purchased ${qty} ${product.product_name} for a total cost of $${totalCost}.`)
   });
 }
