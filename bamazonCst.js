@@ -17,7 +17,7 @@ var connection = mysql.createConnection({
     user: "root",
   
     // Your password
-    password: "root",                         // REMOVE PASSWORD BEFORE GIT
+    password: "",                         // REMOVE PASSWORD BEFORE GIT
     database: "bamazon"
 });
 
@@ -36,7 +36,7 @@ function bamazonCst () {
   // Show all products
   connection.query("SELECT * FROM products", (err, res) => {
     if(err){console.log(err);}
-    console.log(res);
+    // console.log(res);
     // new instance of Table (for easy-table display)
     var t = new Table;
     // display id, product name, price, and stock
